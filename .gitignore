@@ -1,0 +1,13 @@
+# Archivos de IntelliJ
+.idea/
+*.iml
+out/
+target/
+
+# Base de datos local (para que no se suban tus pruebas)
+*.db
+*.db-journal
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
