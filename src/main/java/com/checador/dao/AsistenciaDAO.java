@@ -89,4 +89,37 @@ public class AsistenciaDAO {
             e.printStackTrace();
         }
     }
+
+    // Verifica si el ID ingresado existe en la tabla de trabajadores
+    public boolean existeTrabajador(String id) {
+        String sql = "SELECT 1 FROM trabajadores WHERE id = ?";
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ResultSet rs = ps.executeQuery();
+            return rs.next(); // Retorna true si encontró al menos una fila
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Verifica si el trabajador tiene vacaciones o descanso hoy
+    public String verificarPeriodoLibre(String id) {
+        String sql = "SELECT tipo FROM periodos_libres " +
+                "WHERE id = ? AND date('now', 'localtime') BETWEEN fecha_inicio AND fecha_fin";
+
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("tipo"); // Retornará 'VACACIONES' o 'DESCANSO'
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // No tiene periodos libres hoy
+    }
 }

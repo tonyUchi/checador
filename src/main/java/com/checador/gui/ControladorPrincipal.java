@@ -34,7 +34,7 @@ public class ControladorPrincipal implements Initializable {
     private void iniciarReloj() {
         Timeline reloj = new Timeline(new KeyFrame(Duration.ZERO, e -> {
             LocalTime ahora = LocalTime.now();
-            lblReloj.setText(ahora.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+            lblReloj.setText(ahora.format(DateTimeFormatter.ofPattern("hh:mm:ss")));
         }), new KeyFrame(Duration.seconds(1)));
         reloj.setCycleCount(Timeline.INDEFINITE);
         reloj.play();
@@ -47,6 +47,23 @@ public class ControladorPrincipal implements Initializable {
         // 1. Validación básica
         if (id.isEmpty()) {
             mostrarAlerta("Atención", "Por favor, ingresa un ID de trabajador.", Alert.AlertType.WARNING);
+            return;
+        }
+
+        if (!asistenciaDAO.existeTrabajador(id)) {
+            mostrarAlerta("ID no reconocido", "El ID '" + id + "' no existe en el sistema.", Alert.AlertType.ERROR);
+            txtId.clear();
+            return;
+        }
+
+        // 2. ¿Está de vacaciones o descanso?
+        String periodo = asistenciaDAO.verificarPeriodoLibre(id);
+        if (periodo != null) {
+            String mensaje = periodo.equals("VACACIONES") ?
+                    "El trabajador está en su periodo de VACACIONES." :
+                    "Hoy es día de DESCANSO para este trabajador.";
+            mostrarAlerta("Acceso Denegado", mensaje, Alert.AlertType.INFORMATION);
+            txtId.clear();
             return;
         }
 
