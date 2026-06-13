@@ -63,5 +63,6 @@
         </Button>
 
         <Label layoutX="301.0" layoutY="469.0" text="TonyLabs 2026" textFill="#95a5a6" />
+      <Button layoutX="640.0" layoutY="473.0" mnemonicParsing="false" onAction="#abrirPanelAdmin" style="-fx-background-color: #34495e;" text="Administrar" textFill="#eee9e9" />
     </children>
 </AnchorPane>

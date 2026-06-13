@@ -15,6 +15,12 @@ import javafx.fxml.Initializable;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.scene.control.Label;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import java.io.IOException;
 
 public class ControladorPrincipal implements Initializable {
 
@@ -122,5 +128,30 @@ public class ControladorPrincipal implements Initializable {
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
         alerta.showAndWait();
+    }
+
+    @FXML
+    private void abrirPanelAdmin() {
+        try {
+            // 1. Cargar el archivo FXML de la vista administrador
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/checador/gui/VistaAdmin.fxml"));
+            Parent root = loader.load();
+
+            // 2. Crear un nuevo escenario (Ventana)
+            Stage stageAdmin = new Stage();
+            stageAdmin.setTitle("Panel de Administración - Sistema de Checado");
+
+            // 3. Hacerla modal (opcional: bloquea la ventana de atrás hasta que se cierre esta)
+            stageAdmin.initModality(Modality.APPLICATION_MODAL);
+
+            // 4. Montar la escena y mostrarla
+            stageAdmin.setScene(new Scene(root));
+            stageAdmin.setResizable(false); // Para que no alteren tu diseño de 800x600
+            stageAdmin.show();
+
+        } catch (IOException e) {
+            System.err.println("Error al abrir la ventana de administración: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

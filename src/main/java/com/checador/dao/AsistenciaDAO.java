@@ -5,6 +5,8 @@ import com.checador.model.Asistencia;
 import java.sql.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import com.checador.model.Trabajador;
+import java.util.*;
 
 public class AsistenciaDAO {
 
@@ -121,5 +123,108 @@ public class AsistenciaDAO {
             e.printStackTrace();
         }
         return null; // No tiene periodos libres hoy
+    }
+
+    public List<Trabajador> listarTrabajadores() {
+        List<Trabajador> lista = new ArrayList<>();
+        String sql = "SELECT id, nombre, app, apm, puesto FROM trabajadores ORDER BY app ASC";
+
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                lista.add(new Trabajador(
+                        rs.getString("id"),
+                        rs.getString("nombre"),
+                        rs.getString("app"),
+                        rs.getString("apm"),
+                        rs.getString("puesto")
+                ));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al listar trabajadores: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    public boolean registrarTrabajador(String id, String nombre, String app, String apm, String puesto) {
+        String sql = "INSERT INTO trabajadores (id, nombre, app, apm, puesto) VALUES (?, ?, ?, ?, ?)";
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ps.setString(2, nombre);
+            ps.setString(3, app);
+            ps.setString(4, apm);
+            ps.setString(5, puesto);
+            ps.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Error al registrar trabajador: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean eliminarTrabajador(String id) {
+        String sql = "DELETE FROM trabajadores WHERE id = ?";
+
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+
+            ps.setString(1, id);
+            int filasAfectadas = ps.executeUpdate();
+
+            // Retorna true si se eliminó al menos una fila
+            return filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar trabajador: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public Map<String, String> obtenerHorario(String idTrabajador) {
+        Map<String, String> datos = new HashMap<>();
+        String sql = "SELECT hora_entrada, hora_salida, tolerancia, tiempo_comida FROM horarios WHERE id_trabajador = ?";
+
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+
+            ps.setString(1, idTrabajador);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    datos.put("entrada", rs.getString("hora_entrada"));
+                    datos.put("salida", rs.getString("hora_salida"));
+                    datos.put("tolerancia", String.valueOf(rs.getInt("tolerancia")));
+                    datos.put("comida", String.valueOf(rs.getInt("tiempo_comida")));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener horario: " + e.getMessage());
+        }
+        return datos; // Si está vacío, significa que el empleado no tiene horario asignado aún
+    }
+
+    public boolean guardarOHorarioTrabajador(String idTrabajador, String entrada, String salida, int tolerancia, int comida) {
+        String sql = "INSERT OR REPLACE INTO horarios (id_trabajador, hora_entrada, hora_salida, tolerancia, tiempo_comida) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+
+            ps.setString(1, idTrabajador);
+            ps.setString(2, entrada);
+            ps.setString(3, salida);
+            ps.setInt(4, tolerancia);
+            ps.setInt(5, comida);
+
+            int filasAfectadas = ps.executeUpdate();
+
+            // Retorna true si se insertó o reemplazó la fila con éxito
+            return filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Error en el DAO al guardar/actualizar horario: " + e.getMessage());
+            return false;
+        }
     }
 }

@@ -1,28 +1,39 @@
 package com.checador.model;
+
 public class Trabajador {
     private String id;
     private String nombre;
+    private String app;
+    private String apm;
+    private String puesto;
 
-    public Trabajador(String id, String nombre) {
+    // Constructor completo
+    public Trabajador(String id, String nombre, String app, String apm, String puesto) {
         this.id = id;
         this.nombre = nombre;
+        this.app = app;
+        this.apm = apm;
+        this.puesto = puesto;
     }
 
-    // Getters: JavaFX los usa internamente para PropertyValueFactory
-    public String getId() {
-        return id;
-    }
+    // Getters y Setters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 
-    // Setters: Útiles para ediciones futuras
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getApp() { return app; }
+    public void setApp(String app) { this.app = app; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public String getApm() { return apm; }
+    public void setApm(String apm) { this.apm = apm; }
+
+    public String getPuesto() { return puesto; }
+    public void setPuesto(String puesto) { this.puesto = puesto; }
+
+    // Método auxiliar útil para mostrar el nombre completo combinado si lo necesitas
+    public String getNombreCompleto() {
+        return nombre + " " + app + " " + (apm != null ? apm : "");
     }
 }
