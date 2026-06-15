@@ -19,30 +19,32 @@ import java.util.Map;
 
 public class ControladorAdmin {
 
+    /*
+    Declaracion de los elementos utilizados en el escene buider.
+     */
     @FXML private TableView<Trabajador> tablaTrabajadores;
     @FXML private TableColumn<Trabajador, String> colId;
     @FXML private TableColumn<Trabajador, String> colNombre;
     @FXML private TableColumn<Trabajador, String> colApp;
     @FXML private TableColumn<Trabajador, String> colApm;
     @FXML private TableColumn<Trabajador, String> colPuesto;
-
     @FXML private TextField txtNuevoId;
     @FXML private TextField txtNuevoNombre;
     @FXML private TextField txtApp;
     @FXML private TextField txtApm;
     @FXML private TextField txtPuesto;
-
     @FXML private TextField txtConfigId;
     @FXML private TextField txtHoraEntrada;
     @FXML private Spinner<Integer> spinMinutosC;
     @FXML private Spinner<Integer> spinMinutosT;
     @FXML private TextField txtHoraSalida;
     @FXML private Button btnAtras;
-
-
     private final AsistenciaDAO asistenciaDAO = new AsistenciaDAO();
     private ObservableList<Trabajador> listaObservable;
 
+    /*
+    Se inicializan loa valores que por defecto se cargaran al iniciarse la aplicación
+     */
     @FXML
     public void initialize() {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
@@ -50,13 +52,15 @@ public class ControladorAdmin {
         colApp.setCellValueFactory(new PropertyValueFactory<>("app"));
         colApm.setCellValueFactory(new PropertyValueFactory<>("apm"));
         colPuesto.setCellValueFactory(new PropertyValueFactory<>("puesto"));
-
         spinMinutosC.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(15, 120, 60));
         spinMinutosT.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 15, 5));
 
         actualizarTabla();
     }
 
+    /*
+    Método que recolecta los valores ingresados en las cajas de texto y manda esta información al DAO para realizar el registro de un trabajador en la base de datos.
+     */
     @FXML
     private void agregarTrabajador() {
         String id = txtNuevoId.getText().trim();
@@ -70,7 +74,6 @@ public class ControladorAdmin {
             return;
         }
 
-        // Llamada al DAO (necesitarás crear este método en AsistenciaDAO)
         if (asistenciaDAO.registrarTrabajador(id, nombre, app, apm, puesto)) {
             actualizarTabla();
             txtNuevoId.clear();
@@ -81,79 +84,68 @@ public class ControladorAdmin {
         }
     }
 
+    /*
+    Método que busca por el Id del trabajador su horario asignado, si existe uno lo cargara en pantalla, de lo contrario se podrá establecer uno nuevo.
+     */
     @FXML
     private void cargarHorarioEmpleado() {
         String idBuscar = txtConfigId.getText().trim();
-
         if (idBuscar.isEmpty()) {
             mostrarAlerta("Atención", "Por favor, ingresa un ID de empleado para buscar.");
             return;
         }
-
         Map<String, String> horario = asistenciaDAO.obtenerHorario(idBuscar);
 
         if (!horario.isEmpty()) {
             txtHoraEntrada.setText(horario.get("entrada"));
             txtHoraSalida.setText(horario.get("salida"));
-
-            // AJUSTE PARA SPINNERS: Convertimos el String de la BD a Entero y lo asignamos
             spinMinutosT.getValueFactory().setValue(Integer.parseInt(horario.get("tolerancia")));
             spinMinutosC.getValueFactory().setValue(Integer.parseInt(horario.get("comida")));
-
             mostrarAlerta("Éxito", "Horario cargado correctamente.");
         } else {
             mostrarAlerta("Información", "No se encontró un horario previo. Puede asignar uno nuevo.");
             txtHoraEntrada.clear();
             txtHoraSalida.clear();
-
-            // Reseteamos los spinners a un valor por defecto (ej. 0 o 15)
             spinMinutosT.getValueFactory().setValue(0);
             spinMinutosC.getValueFactory().setValue(0);
         }
     }
 
+    /*
+    Método que permite seleccionar y eliminar a un trabajador de la tabla, trabajadores.
+     */
     @FXML
     private void eliminarTrabajador() {
-        // 1. Obtener el trabajador seleccionado en la tabla
         Trabajador seleccionado = tablaTrabajadores.getSelectionModel().getSelectedItem();
-
         if (seleccionado != null) {
-            // Opcional pero recomendado: Una pequeña validación antes de borrar
             if (asistenciaDAO.eliminarTrabajador(seleccionado.getId())) {
                 mostrarAlerta("Éxito", "Trabajador eliminado correctamente.");
-                actualizarTabla(); // Refresca la lista visualmente
+                actualizarTabla();
             } else {
                 mostrarAlerta("Error", "No se pudo eliminar al trabajador de la base de datos.");
             }
         } else {
-            // Si el usuario presionó el botón sin seleccionar a nadie
             mostrarAlerta("Atención", "Por favor, selecciona un trabajador de la tabla primero.");
         }
     }
 
+    /*
+    Método que permite obtener los valores de las cajas de texto para los horarios de los trabajadores y después los enviá al DAO, para que se puedan guardar en la base de datos.
+     */
     @FXML
     private void guardarConfiguracion() {
         String idTrabajador = txtConfigId.getText().trim();
         String entrada = txtHoraEntrada.getText().trim();
         String salida = txtHoraSalida.getText().trim();
-
-        // AJUSTE PARA SPINNERS: Obtenemos el valor entero directamente sin parsear
         int tolerancia = spinMinutosT.getValue();
         int tiempoComida = spinMinutosT.getValue();
-
-        // Validación de campos de texto
         if (idTrabajador.isEmpty() || entrada.isEmpty() || salida.isEmpty()) {
             mostrarAlerta("Campos vacíos", "Por favor, llena el ID y los horarios de entrada/salida.");
             return;
         }
-
-        // Mandamos los datos al DAO (el método que usa INSERT OR REPLACE)
         boolean exito = asistenciaDAO.guardarOHorarioTrabajador(idTrabajador, entrada, salida, tolerancia, tiempoComida);
-
         if (exito) {
             mostrarAlerta("Éxito", "Horario guardado/actualizado correctamente para el ID: " + idTrabajador);
-
-            // Opcional: Limpiar la pantalla tras guardar
             txtConfigId.clear();
             txtHoraEntrada.clear();
             txtHoraSalida.clear();
@@ -164,14 +156,18 @@ public class ControladorAdmin {
         }
     }
 
+    /*
+    Método que permite obtener una lista de los trabajadores desde la base de datos y con ello rellenar la tabla que se le mostrara al administrador.
+     */
     private void actualizarTabla() {
-        // Aquí llamaremos al DAO para obtener la lista
-        // Por ahora, simulamos una lista para que no te dé error
         List<Trabajador> lista = asistenciaDAO.listarTrabajadores();
         listaObservable = FXCollections.observableArrayList(lista);
         tablaTrabajadores.setItems(listaObservable);
     }
 
+    /*
+    Método que nos ayuda a mostrar las diferentes alertas que el programa puede lanzar.
+     */
     private void mostrarAlerta(String titulo, String msg) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titulo);
@@ -180,24 +176,20 @@ public class ControladorAdmin {
         alert.showAndWait();
     }
 
+    /*
+    Método que se encarga de cerrar la ventana del administrador y regresar a la pantalla principal del programa.
+     */
     @FXML
     private void regresarAlChecador() {
         try {
-            // 1. Cerrar por completo la ventana de administración actual
-            Stage etapaActual = (Stage) btnAtras.getScene().getWindow(); // Asegúrate de tener el fx:id de btnAtras
-            etapaActual.close(); // .close() la destruye de la memoria, no solo la esconde
-
-            // 2. Volver a cargar y mostrar la ventana del checador principal
+            Stage etapaActual = (Stage) btnAtras.getScene().getWindow();
+            etapaActual.close();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/checador/gui/VistaPrincipal.fxml"));
             Parent root = loader.load();
-
             Stage stageChecador = new Stage();
             stageChecador.setTitle("Checador de Asistencia Oficial");
             stageChecador.setScene(new Scene(root));
-
-            // Al ser una ventana normal e independiente, Manjaro te va a habilitar los botones de minimizar
             stageChecador.show();
-
         } catch (IOException e) {
             System.err.println("Error al regresar al checador: " + e.getMessage());
         }
