@@ -9,12 +9,10 @@ public class Asistencia {
     private String horaComidaRegreso;
     private String horaSalida;
 
-    // Constructor básico para cuando el trabajador inicia su día
     public Asistencia(String id) {
         this.id = id;
     }
 
-    // Constructor completo (útil para cuando el DAO recupera datos de la BD)
     public Asistencia(String id, String fecha, String horaEntrada, String horaComidaSalida,
                       String horaComidaEsperada, String horaComidaRegreso, String horaSalida) {
         this.id = id;
@@ -26,7 +24,6 @@ public class Asistencia {
         this.horaSalida = horaSalida;
     }
 
-    // Getters y Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

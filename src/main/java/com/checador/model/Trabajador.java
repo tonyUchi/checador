@@ -7,7 +7,6 @@ public class Trabajador {
     private String apm;
     private String puesto;
 
-    // Constructor completo
     public Trabajador(String id, String nombre, String app, String apm, String puesto) {
         this.id = id;
         this.nombre = nombre;
@@ -16,7 +15,6 @@ public class Trabajador {
         this.puesto = puesto;
     }
 
-    // Getters y Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -32,7 +30,6 @@ public class Trabajador {
     public String getPuesto() { return puesto; }
     public void setPuesto(String puesto) { this.puesto = puesto; }
 
-    // Método auxiliar útil para mostrar el nombre completo combinado si lo necesitas
     public String getNombreCompleto() {
         return nombre + " " + app + " " + (apm != null ? apm : "");
     }
