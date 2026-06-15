@@ -13,7 +13,6 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Cargamos el FXML desde la ruta de recursos
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/checador/gui/VistaPrincipal.fxml"));
         Parent root = fxmlLoader.load();
 
@@ -21,7 +20,7 @@ public class App extends Application {
 
         stage.setTitle("Checador");
         stage.setScene(scene);
-        stage.setResizable(false); // Para mantener el diseño AnchorPane intacto
+        stage.setResizable(false);
         stage.show();
     }
 

@@ -3,23 +3,25 @@ package com.checador.gui;
 import com.checador.dao.AsistenciaDAO;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import javafx.fxml.Initializable;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
-import javafx.scene.control.Label;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Pair;
+
 import java.io.IOException;
 
 public class ControladorPrincipal implements Initializable {
@@ -132,26 +134,76 @@ public class ControladorPrincipal implements Initializable {
 
     @FXML
     private void abrirPanelAdmin() {
-        try {
-            // 1. Cargar el archivo FXML de la vista administrador
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/checador/gui/VistaAdmin.fxml"));
-            Parent root = loader.load();
+        // 1. Crear el Diálogo personalizado
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Control de Acceso");
+        dialog.setHeaderText("Área de Administración - Inicie Sesión");
 
-            // 2. Crear un nuevo escenario (Ventana)
-            Stage stageAdmin = new Stage();
-            stageAdmin.setTitle("Panel de Administración - Sistema de Checado");
+        // Configurar los botones del diálogo (Aceptar y Cancelar)
+        ButtonType botonAceptarTipo = new ButtonType("Entrar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(botonAceptarTipo, ButtonType.CANCEL);
 
-            // 3. Hacerla modal (opcional: bloquea la ventana de atrás hasta que se cierre esta)
-            stageAdmin.initModality(Modality.APPLICATION_MODAL);
+        // 2. Crear los campos de texto para la interfaz del Login
+        TextField txtUsuario = new TextField();
+        txtUsuario.setPromptText("Nombre de usuario");
 
-            // 4. Montar la escena y mostrarla
-            stageAdmin.setScene(new Scene(root));
-            stageAdmin.setResizable(false); // Para que no alteren tu diseño de 800x600
-            stageAdmin.show();
+        PasswordField txtPassword = new PasswordField(); // Oculta los caracteres de la contraseña con puntitos
+        txtPassword.setPromptText("Contraseña");
 
-        } catch (IOException e) {
-            System.err.println("Error al abrir la ventana de administración: " + e.getMessage());
-            e.printStackTrace();
+        // Acomodar los campos en un contenedor vertical con separación de 10 pixeles
+        VBox contenedor = new VBox(10);
+        contenedor.getChildren().addAll(
+                new Label("Usuario:"), txtUsuario,
+                new Label("Contraseña:"), txtPassword
+        );
+        dialog.getDialogPane().setContent(contenedor);
+
+        // 3. Convertir el resultado de los campos a un par de datos (Usuario, Password) cuando den clic en Entrar
+        dialog.setResultConverter(dialogBoton -> {
+            if (dialogBoton == botonAceptarTipo) {
+                return new Pair<>(txtUsuario.getText().trim(), txtPassword.getText().trim());
+            }
+            return null;
+        });
+
+        // 4. Mostrar el diálogo y capturar la respuesta
+        Optional<Pair<String, String>> resultado = dialog.showAndWait();
+
+        if (resultado.isPresent()) {
+            String usuario = resultado.get().getKey();
+            String password = resultado.get().getValue();
+
+            // 5. Validar ambas credenciales en la Base de Datos a través del DAO
+            boolean loginExitoso = asistenciaDAO.validarAdmin(usuario, password);
+
+            if (loginExitoso) {
+                try {
+                    // 1. Conseguir la ventana actual (la del checador público) a través de cualquier componente
+                    Stage ventanaActual = (Stage) txtId.getScene().getWindow();
+
+// 2. Ocultarla para que no se quede atrás estorbando
+                    ventanaActual.hide();
+
+// 3. Cargar la nueva ventana de administración (como ya lo hacías)
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/checador/gui/VistaAdmin.fxml"));
+                    Parent root = loader.load();
+
+                    Stage stageAdmin = new Stage();
+                    stageAdmin.setTitle("Panel de Administración");
+                    stageAdmin.setScene(new Scene(root));
+
+// ¡MUY IMPORTANTE!: Asegúrate de NO usar stageAdmin.initModality(...)
+// Si usas Modality, a veces Linux (Manjaro) deshabilita el botón de minimizar por seguridad.
+
+                    stageAdmin.show();
+
+                } catch (IOException e) {
+                    System.err.println("Error al abrir la ventana de administración: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                mostrarAlerta("Acceso Denegado", "El usuario o la contraseña son incorrectos.", Alert.AlertType.ERROR);
+            }
         }
     }
 }

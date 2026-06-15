@@ -5,9 +5,14 @@ import com.checador.model.Trabajador;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +37,7 @@ public class ControladorAdmin {
     @FXML private Spinner<Integer> spinMinutosC;
     @FXML private Spinner<Integer> spinMinutosT;
     @FXML private TextField txtHoraSalida;
+    @FXML private Button btnAtras;
 
 
     private final AsistenciaDAO asistenciaDAO = new AsistenciaDAO();
@@ -39,18 +45,15 @@ public class ControladorAdmin {
 
     @FXML
     public void initialize() {
-        // 1. Vincular columnas con atributos del modelo Trabajador
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colApp.setCellValueFactory(new PropertyValueFactory<>("app"));
         colApm.setCellValueFactory(new PropertyValueFactory<>("apm"));
         colPuesto.setCellValueFactory(new PropertyValueFactory<>("puesto"));
 
-        // 2. Configurar el Spinner
         spinMinutosC.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(15, 120, 60));
         spinMinutosT.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 15, 5));
 
-        // 3. Cargar datos iniciales
         actualizarTabla();
     }
 
@@ -175,5 +178,28 @@ public class ControladorAdmin {
         alert.setHeaderText(null);
         alert.setContentText(msg);
         alert.showAndWait();
+    }
+
+    @FXML
+    private void regresarAlChecador() {
+        try {
+            // 1. Cerrar por completo la ventana de administración actual
+            Stage etapaActual = (Stage) btnAtras.getScene().getWindow(); // Asegúrate de tener el fx:id de btnAtras
+            etapaActual.close(); // .close() la destruye de la memoria, no solo la esconde
+
+            // 2. Volver a cargar y mostrar la ventana del checador principal
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/checador/gui/VistaPrincipal.fxml"));
+            Parent root = loader.load();
+
+            Stage stageChecador = new Stage();
+            stageChecador.setTitle("Checador de Asistencia Oficial");
+            stageChecador.setScene(new Scene(root));
+
+            // Al ser una ventana normal e independiente, Manjaro te va a habilitar los botones de minimizar
+            stageChecador.show();
+
+        } catch (IOException e) {
+            System.err.println("Error al regresar al checador: " + e.getMessage());
+        }
     }
 }

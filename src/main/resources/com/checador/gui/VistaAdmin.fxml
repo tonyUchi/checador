@@ -23,6 +23,7 @@
                         <Font name="System Bold" size="24.0" />
                     </font>
                 </Label>
+            <Button fx:id="btnAtras" layoutX="651.0" layoutY="22.0" mnemonicParsing="false" onAction="#regresarAlChecador" style="-fx-background-color: #555555; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;" text="regresar" />
             </children>
         </Pane>
 

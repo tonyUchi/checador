@@ -55,18 +55,8 @@ public class DatabaseInit {
             st.execute(sqlAsistencias);
             st.execute(sqlPeriodos);
 
-            // Datos iniciales para que el sistema no esté vacío
-            st.execute("INSERT OR IGNORE INTO trabajadores (id, nombre, app, apm, puesto) VALUES ('123', 'Mayra', 'Cortes', 'Pereyra', 'Jefe')");
-            st.execute("INSERT OR IGNORE INTO configuracion (id_config, hora_entrada_oficial, minutos_comida) VALUES (1, '09:00:00', 120)");
-
-            System.out.println("Estructura completa de base de datos inicializada.");
-
         } catch (Exception e) {
             System.err.println("Error al inicializar tablas: " + e.getMessage());
         }
-    }
-
-    public static void main(String[] args) {
-        crearTablas();
     }
 }
