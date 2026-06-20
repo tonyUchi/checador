@@ -30,6 +30,9 @@ public class ControladorAdmin {
     @FXML private TableColumn<Trabajador, String> colPuesto;
     @FXML private TextField txtNuevoId;
     @FXML private TextField txtNuevoNombre;
+    @FXML private TextField txtIdPeriodoAdmin;
+    @FXML private DatePicker dpFechaInicio;
+    @FXML private DatePicker dpFechaFin;
     @FXML private TextField txtApp;
     @FXML private TextField txtApm;
     @FXML private TextField txtPuesto;
@@ -37,6 +40,7 @@ public class ControladorAdmin {
     @FXML private TextField txtHoraEntrada;
     @FXML private Spinner<Integer> spinMinutosC;
     @FXML private Spinner<Integer> spinMinutosT;
+    @FXML private ComboBox<String> cmbTipoPeriodo;
     @FXML private TextField txtHoraSalida;
     @FXML private Button btnAtras;
     private final AsistenciaDAO asistenciaDAO = new AsistenciaDAO();
@@ -54,7 +58,8 @@ public class ControladorAdmin {
         colPuesto.setCellValueFactory(new PropertyValueFactory<>("puesto"));
         spinMinutosC.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(15, 120, 60));
         spinMinutosT.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 15, 5));
-
+        cmbTipoPeriodo.getItems().addAll("VACACIONES", "DESCANSO");
+        cmbTipoPeriodo.setValue("DESCANSO");
         actualizarTabla();
     }
 
@@ -166,6 +171,49 @@ public class ControladorAdmin {
     }
 
     /*
+    Metodo que agrega el registro para dia de vacaciones o descanso
+     */
+
+    @FXML
+    public void guardarNuevoPeriodo() {
+        if (txtIdPeriodoAdmin.getText().trim().isEmpty() ||
+                cmbTipoPeriodo.getValue() == null ||
+                dpFechaInicio.getValue() == null ||
+                dpFechaFin.getValue() == null) {
+
+            mostrarAlerta("Campos Incompletos", "Por favor, llena todos los campos antes de guardar.");
+            return;
+        }
+
+        String id = txtIdPeriodoAdmin.getText().trim();
+        String tipo = cmbTipoPeriodo.getValue();
+        String inicio = dpFechaInicio.getValue().toString();
+        String fin = dpFechaFin.getValue().toString();
+
+        if (dpFechaFin.getValue().isBefore(dpFechaInicio.getValue())) {
+            mostrarAlerta("Error de Fechas", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+            return;
+        }
+
+        boolean existeEmpleado = asistenciaDAO.existeTrabajador(id);
+
+        if (!existeEmpleado) {
+            mostrarAlerta("Trabajador No Encontrado",
+                    "El ID '" + id + "' no corresponde a ningún trabajador registrado.");
+            return;
+        }
+        boolean exito = asistenciaDAO.registrarPeriodoLibre(id, tipo, inicio, fin);
+        if (exito) {
+            mostrarAlerta("Registro Exitoso", "El periodo de " + tipo + " fue asignado correctamente.");
+            txtIdPeriodoAdmin.clear();
+            dpFechaInicio.setValue(null);
+            dpFechaFin.setValue(null);
+        } else {
+            mostrarAlerta("Error", "No se pudo registrar el periodo. Verifica si el ID del trabajador es correcto.");
+        }
+    }
+
+    /*
     Método que nos ayuda a mostrar las diferentes alertas que el programa puede lanzar.
      */
     private void mostrarAlerta(String titulo, String msg) {
@@ -194,4 +242,5 @@ public class ControladorAdmin {
             System.err.println("Error al regresar al checador: " + e.getMessage());
         }
     }
+
 }

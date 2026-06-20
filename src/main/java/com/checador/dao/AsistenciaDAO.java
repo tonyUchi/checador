@@ -257,7 +257,6 @@ public class AsistenciaDAO {
 
             ps.setString(1, usuario);
             ps.setString(2, contrasenia);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return true;
@@ -267,5 +266,32 @@ public class AsistenciaDAO {
             System.err.println("Error al validar credenciales de admin: " + e.getMessage());
         }
         return false;
+    }
+
+    public boolean registrarPeriodoLibre(String idTrabajador, String tipo, String fechaInicio, String fechaFin) {
+        String sql = "INSERT INTO periodos_libres (id, tipo, fecha_inicio, fecha_fin) VALUES (?, ?, ?, ?)";
+
+        try (Connection cn = Conexion.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+
+            ps.setString(1, idTrabajador);
+            ps.setString(2, tipo);
+            ps.setString(3, fechaInicio);
+            ps.setString(4, fechaFin);
+
+            int filasAfectadas = ps.executeUpdate();
+            if(filasAfectadas > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }
